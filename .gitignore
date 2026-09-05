@@ -1,0 +1,19 @@
+# node
+node_modules/
+.next/
+
+# java
+target/
+*.class
+
+# env (root-level env files)
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editor (if you're not both on the same IDE)
+.vscode/
+.idea/
