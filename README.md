@@ -1,4 +1,4 @@
-# Nibbling
+# <img width="53" alt="logo1" src="https://github.com/user-attachments/assets/133bcb1e-b467-4e1f-9e08-e039431ae077" /> Nibbling
 
 *(working title)* — a daily, bite-sized coding puzzle app. Solve today's problem, get a Wordle-style shareable result, and grow a companion creature based on how well you did. COMP 490/L Senior Design Project.
 
