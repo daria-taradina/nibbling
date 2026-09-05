@@ -2,7 +2,7 @@
 
 *(working title)* — a daily, bite-sized coding puzzle app. Solve today's problem, get a Wordle-style shareable result, and grow a companion creature based on how well you did. COMP 490/L Senior Design Project.
 
-## Tech Stack
+## 💻 Tech Stack
 
 | Layer | Choice |
 |---|---|
@@ -13,7 +13,7 @@
 | Frontend hosting | Vercel |
 | Backend hosting | Render |
 
-## Repo Structure
+## 🗂 Repo Structure
 
 ```
 nibbling/
@@ -21,7 +21,7 @@ nibbling/
   server/   # Spring Boot API
 ```
 
-## Getting Started
+## :rocket: Getting Started
 
 ### Prerequisites
 
