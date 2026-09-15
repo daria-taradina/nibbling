@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/* ─── Tailwind v4 theme ──────────────────────────────────────────────────── */
+@theme {
+  /* Brand green */
+  --color-nibbling-50:  #EFF7F0;
+  --color-nibbling-100: #DCEEDF;
+  --color-nibbling-200: #B4DBBB;
+  --color-nibbling-300: #87C592;
+  --color-nibbling-400: #5CAE6C;
+  --color-nibbling-500: #3D8B57;
+  --color-nibbling-600: #2F9E52;
+  --color-nibbling-700: #256B3C;
+  --color-nibbling-800: #1B4E2C;
+  --color-nibbling-900: #122F1B;
+
+  /* Tier colors */
+  --color-tier-gold:   #F1C232;
+  --color-tier-silver: #B8C0C4;
+  --color-tier-bronze: #C97B3D;
+  --color-tier-miss:   #8FA69C;
+
+  /* Light mode surfaces */
+  --color-cream-bg:      #FBF9F0;
+  --color-cream-surface: #F2F0E4;
+  --color-cream-border:  #E3E0D2;
+
+  /* Dark mode surfaces */
+  --color-ink-bg:      #0A1210;
+  --color-ink-surface: #0F1B18;
+  --color-ink-raised:  #060F0D;
+  --color-ink-border:  #1C2E29;
+
+  /* Fonts */
+  --font-display: var(--font-fredoka), sans-serif;
+  --font-body:    var(--font-inter), sans-serif;
+  --font-mono:    var(--font-jetbrains-mono), monospace;
+
+  /* Extra border radius */
+  --radius-xl2: 1.25rem;
+}
+
+/* ─── Dark mode via .dark class on <html> ────────────────────────────────── */
+@variant dark (&:where(.dark, .dark *));
+
+/* ─── Base styles ────────────────────────────────────────────────────────── */
+@layer base {
+  body {
+    @apply bg-cream-bg text-ink-bg font-body antialiased;
+  }
+
+  .dark body {
+    @apply bg-ink-bg text-cream-bg;
+  }
+
+  h1, h2, h3 {
+    @apply font-display;
+  }
+
+  /* Visible keyboard focus — do not remove for aesthetics */
+  :focus-visible {
+    @apply outline-none ring-2 ring-nibbling-500 ring-offset-2 ring-offset-cream-bg;
+  }
+
+  .dark :focus-visible {
+    @apply ring-nibbling-600 ring-offset-ink-bg;
+  }
+}
