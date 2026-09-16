@@ -74,5 +74,5 @@ No `.env` files are committed anywhere in this repo. Each person sets their own 
 ## Team
 
 - Daria — [role/focus TBD]
-- [Teammate 2]
+- Farshad - 
 - [Teammate 3]
