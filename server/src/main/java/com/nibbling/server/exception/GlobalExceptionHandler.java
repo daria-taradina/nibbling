@@ -24,8 +24,10 @@ public class GlobalExceptionHandler {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         ex.getBindingResult().getFieldErrors()
                 .forEach(e -> fieldErrors.put(e.getField(), e.getDefaultMessage()));
+        // Surface the first field message so the frontend can show something useful.
+        String message = fieldErrors.values().stream().findFirst().orElse("Validation failed");
         return ResponseEntity.badRequest()
-                .body(new ErrorResponse(400, "Bad Request", "Validation failed", fieldErrors));
+                .body(new ErrorResponse(400, "Bad Request", message, fieldErrors));
     }
 
     @ExceptionHandler({EmailAlreadyExistsException.class, UsernameAlreadyExistsException.class})
@@ -40,6 +42,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse(401, "Unauthorized", INVALID_CREDENTIALS_MESSAGE));
+    }
+
+    // NEW: bad, expired, or already-used email link.
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidToken(InvalidTokenException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, "Bad Request", ex.getMessage()));
     }
 
     // Safety net for the race condition where two requests both pass the

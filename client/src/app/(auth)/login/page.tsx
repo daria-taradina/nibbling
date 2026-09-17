@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Input } from "@/components/ui/Input";
@@ -10,7 +11,7 @@ import { login, githubLoginUrl, ApiError } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,7 +21,7 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      const { token } = await login(usernameOrEmail, password);
+      const { token } = await login(email, password);
       // MVP: localStorage is simplest to wire today. Once the backend can
       // set an httpOnly cookie on /api/auth/login, switch to that instead —
       // it's not readable by JS, so it holds up better against XSS.
@@ -42,12 +43,14 @@ export default function LoginPage() {
       footerLinkHref="/register"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* The backend logs in by email only, so this field asks for email. */}
         <Input
-          label="Username or email"
-          name="usernameOrEmail"
-          autoComplete="username"
-          value={usernameOrEmail}
-          onChange={(e) => setUsernameOrEmail(e.target.value)}
+          label="Email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <Input
@@ -59,6 +62,14 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+
+        {/* NEW: link to the forgot-password page */}
+        <Link
+          href="/forgot-password"
+          className="-mt-2 self-end text-sm text-green-600 hover:underline dark:text-green-400"
+        >
+          Forgot password?
+        </Link>
 
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
