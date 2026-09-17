@@ -20,6 +20,7 @@ async function postJson<T>(path: string, body: unknown, fallbackError: string): 
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
+    // 429 = rate limited; the backend message says how long to wait.
     throw new ApiError(data?.message ?? fallbackError, res.status);
   }
   return data as T;
@@ -80,9 +81,21 @@ export function resetPassword(token: string, newPassword: string) {
   );
 }
 
-// Spring Security's default OAuth2 client convention — this path should
-// work as soon as the GitHub provider is registered on the backend,
-// no frontend change needed.
+// ---- GitHub / Discord sign-in ----
+// These are full-page links, not fetch calls. The backend sends the user to
+// the provider, then back to /oauth/callback with a token.
+
 export function githubLoginUrl() {
   return `${API_URL}/oauth2/authorization/github`;
 }
+
+export function discordLoginUrl() {
+  return `${API_URL}/oauth2/authorization/discord`;
+}
+
+// Messages for /login?error=... after a failed GitHub/Discord sign-in.
+export const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  oauth: "Sign-in didn't finish. Try again.",
+  oauth_email:
+    "We couldn't get a verified email from that account. Verify your email with GitHub or Discord, then try again.",
+};

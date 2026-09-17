@@ -1,13 +1,20 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { GithubIcon } from "@/components/icons/GithubIcon";
-import { login, githubLoginUrl, ApiError } from "@/lib/api";
+import { DiscordIcon } from "@/components/icons/DiscordIcon";
+import {
+  login,
+  githubLoginUrl,
+  discordLoginUrl,
+  OAUTH_ERROR_MESSAGES,
+  ApiError,
+} from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +22,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Show a message when GitHub/Discord sign-in sent us back with ?error=...
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("error");
+    if (code) {
+      setError(OAUTH_ERROR_MESSAGES[code] ?? OAUTH_ERROR_MESSAGES.oauth);
+    }
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -63,7 +78,6 @@ export default function LoginPage() {
           required
         />
 
-        {/* NEW: link to the forgot-password page */}
         <Link
           href="/forgot-password"
           className="-mt-2 self-end text-sm text-green-600 hover:underline dark:text-green-400"
@@ -84,12 +98,20 @@ export default function LoginPage() {
         <div className="h-px flex-1 bg-cream-border dark:bg-ink-border" />
       </div>
 
-      <a href={githubLoginUrl()}>
-        <Button type="button" variant="oauth">
-          <GithubIcon />
-          Continue with GitHub
-        </Button>
-      </a>
+      <div className="flex flex-col gap-3">
+        <a href={githubLoginUrl()}>
+          <Button type="button" variant="oauth">
+            <GithubIcon />
+            Continue with GitHub
+          </Button>
+        </a>
+        <a href={discordLoginUrl()}>
+          <Button type="button" variant="oauth">
+            <DiscordIcon />
+            Continue with Discord
+          </Button>
+        </a>
+      </div>
     </AuthCard>
   );
 }
