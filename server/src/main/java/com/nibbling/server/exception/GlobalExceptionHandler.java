@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,8 +25,17 @@ public class GlobalExceptionHandler {
         Map<String, String> fieldErrors = new LinkedHashMap<>();
         ex.getBindingResult().getFieldErrors()
                 .forEach(e -> fieldErrors.put(e.getField(), e.getDefaultMessage()));
+        // Surface the first field message so the frontend can show something useful.
+        String message = fieldErrors.values().stream().findFirst().orElse("Validation failed");
         return ResponseEntity.badRequest()
-                .body(new ErrorResponse(400, "Bad Request", "Validation failed", fieldErrors));
+                .body(new ErrorResponse(400, "Bad Request", message, fieldErrors));
+    }
+
+    // NEW: missing or broken JSON body -> 400 instead of 500.
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleUnreadable(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, "Bad Request", "Request body is missing or malformed"));
     }
 
     @ExceptionHandler({EmailAlreadyExistsException.class, UsernameAlreadyExistsException.class})
@@ -42,6 +52,13 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(401, "Unauthorized", INVALID_CREDENTIALS_MESSAGE));
     }
 
+    // Bad, expired, or already-used email link.
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidToken(InvalidTokenException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, "Bad Request", ex.getMessage()));
+    }
+
     // Safety net for the race condition where two requests both pass the
     // existsByEmail/existsByUsername checks before either has committed.
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -53,6 +70,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+        // NEW: Spring's own web errors (wrong HTTP method, unknown URL, etc.)
+        // keep their real status (405, 404...) instead of becoming a 500.
+        if (ex instanceof org.springframework.web.ErrorResponse springError) {
+            int status = springError.getStatusCode().value();
+            HttpStatus resolved = HttpStatus.resolve(status);
+            String reason = resolved != null ? resolved.getReasonPhrase() : "Error";
+            return ResponseEntity.status(status)
+                    .body(new ErrorResponse(status, reason, reason));
+        }
         log.error("Unhandled exception", ex);
         return ResponseEntity.internalServerError()
                 .body(new ErrorResponse(500, "Internal Server Error", "Something went wrong"));

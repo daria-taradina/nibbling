@@ -6,7 +6,8 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { GithubIcon } from "@/components/icons/GithubIcon";
-import { register, githubLoginUrl, ApiError } from "@/lib/api";
+import { DiscordIcon } from "@/components/icons/DiscordIcon";
+import { register, githubLoginUrl, discordLoginUrl, ApiError } from "@/lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -97,12 +98,20 @@ export default function RegisterPage() {
         <div className="h-px flex-1 bg-cream-border dark:bg-ink-border" />
       </div>
 
-      <a href={githubLoginUrl()}>
-        <Button type="button" variant="oauth">
-          <GithubIcon />
-          Continue with GitHub
-        </Button>
-      </a>
+      <div className="flex flex-col gap-3">
+        <a href={githubLoginUrl()}>
+          <Button type="button" variant="oauth">
+            <GithubIcon />
+            Continue with GitHub
+          </Button>
+        </a>
+        <a href={discordLoginUrl()}>
+          <Button type="button" variant="oauth">
+            <DiscordIcon />
+            Continue with Discord
+          </Button>
+        </a>
+      </div>
     </AuthCard>
   );
 }
