@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 public class AuthService {
 
@@ -81,6 +83,15 @@ public class AuthService {
         }
 
         return buildAuthResponse(user);
+    }
+
+    // The signed-in user's public summary (for the navbar, etc). The JWT only
+    // carries id + email, so the username has to come from the database.
+    @Transactional(readOnly = true)
+    public UserSummary getCurrentUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InvalidCredentialsException("Account not found"));
+        return UserSummary.from(user);
     }
 
     // ---- Email verification (NEW) ----

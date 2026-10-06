@@ -1,0 +1,670 @@
+diff -ruN a/nibbling-dev/client/src/app/(app)/layout.tsx b/nibbling-dev/client/src/app/(app)/layout.tsx
+--- a/nibbling-dev/client/src/app/(app)/layout.tsx	1970-01-01 00:00:00.000000000 +0000
++++ b/nibbling-dev/client/src/app/(app)/layout.tsx	2026-10-06 18:03:13.038700135 +0000
+@@ -0,0 +1,14 @@
++import { UserProvider } from "@/components/auth/UserProvider";
++import { Navbar } from "@/components/layout/Navbar";
++
++// Shell for every signed-in page: auth gate + navbar. Pages render below it.
++export default function AppLayout({ children }: { children: React.ReactNode }) {
++  return (
++    <UserProvider>
++      <div className="min-h-screen bg-cream-bg dark:bg-ink-bg">
++        <Navbar />
++        <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6">{children}</main>
++      </div>
++    </UserProvider>
++  );
++}
+diff -ruN a/nibbling-dev/client/src/app/(app)/page.tsx b/nibbling-dev/client/src/app/(app)/page.tsx
+--- a/nibbling-dev/client/src/app/(app)/page.tsx	2026-10-06 18:03:13.031091451 +0000
++++ b/nibbling-dev/client/src/app/(app)/page.tsx	2026-10-06 18:03:13.038677297 +0000
+@@ -1,69 +1,31 @@
+-import Image from "next/image";
++// Home dashboard scaffold, laid out like the mockup. Each Slot is a stand-in
++// for a real component we'll build next (swap the Slot for the component and
++// keep the className on a wrapper). DOM order = mobile order.
++
++function Slot({ title, className = "" }: { title: string; className?: string }) {
++  return (
++    <section
++      className={`flex min-h-40 items-center justify-center rounded-xl2 border border-dashed border-cream-border
++                  bg-white/60 text-sm text-ink-bg/50 dark:border-ink-border dark:bg-ink-surface/60 dark:text-cream-bg/50
++                  ${className}`}
++    >
++      {title}
++    </section>
++  );
++}
+ 
+ export default function Home() {
+   return (
+-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+-        <Image
+-          className="dark:invert h-5 w-[100px]"
+-          src="/next.svg"
+-          alt="Next.js logo"
+-          width={100}
+-          height={20}
+-          priority
+-        />
+-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+-            To get started, edit the{" "}
+-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
+-              page.tsx
+-            </code>{" "}
+-            file.
+-          </h1>
+-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+-            Looking for a starting point or more instructions? Head over to{" "}
+-            <a
+-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+-              className="font-medium text-zinc-950 dark:text-zinc-50"
+-            >
+-              Templates
+-            </a>{" "}
+-            or the{" "}
+-            <a
+-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+-              className="font-medium text-zinc-950 dark:text-zinc-50"
+-            >
+-              Learning
+-            </a>{" "}
+-            center.
+-          </p>
+-        </div>
+-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+-          <a
+-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+-            target="_blank"
+-            rel="noopener noreferrer"
+-          >
+-            <Image
+-              className="dark:invert h-[14px] w-4"
+-              src="/vercel.svg"
+-              alt="Vercel logomark"
+-              width={16}
+-              height={14}
+-            />
+-            Deploy Now
+-          </a>
+-          <a
+-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
+-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+-            target="_blank"
+-            rel="noopener noreferrer"
+-          >
+-            Documentation
+-          </a>
+-        </div>
+-      </main>
++    <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
++      <Slot title="Level + companion hero" className="min-h-64 lg:col-span-4" />
++      <Slot title="Today's streak + next reward" className="lg:col-span-5" />
++      <Slot title="Today's challenge" className="min-h-72 lg:col-span-5" />
++      <div className="flex flex-col gap-4 lg:col-span-4">
++        <Slot title="Your companion" className="flex-1" />
++        <Slot title="Quote" className="flex-1" />
++      </div>
++      {/* Last in the DOM for mobile, pinned top-right on desktop */}
++      <Slot title="Calendar" className="min-h-72 lg:col-span-3 lg:col-start-10 lg:row-span-2 lg:row-start-1" />
+     </div>
+   );
+ }
+diff -ruN a/nibbling-dev/client/src/app/(auth)/login/page.tsx b/nibbling-dev/client/src/app/(auth)/login/page.tsx
+--- a/nibbling-dev/client/src/app/(auth)/login/page.tsx	2026-10-06 18:03:13.031303700 +0000
++++ b/nibbling-dev/client/src/app/(auth)/login/page.tsx	2026-10-06 18:03:13.038799938 +0000
+@@ -6,6 +6,7 @@
+ import { AuthCard } from "@/components/auth/AuthCard";
+ import { Input } from "@/components/ui/Input";
+ import { Button } from "@/components/ui/Button";
++import { setToken } from "@/lib/auth";
+ import { GithubIcon } from "@/components/icons/GithubIcon";
+ import { DiscordIcon } from "@/components/icons/DiscordIcon";
+ import {
+@@ -36,11 +37,11 @@
+     setError(null);
+     setLoading(true);
+     try {
+-      const { token } = await login(email, password);
++      const { accessToken } = await login(email, password);
+       // MVP: localStorage is simplest to wire today. Once the backend can
+       // set an httpOnly cookie on /api/auth/login, switch to that instead —
+       // it's not readable by JS, so it holds up better against XSS.
+-      localStorage.setItem("nibbling_token", token);
++      setToken(accessToken);
+       router.push("/");
+     } catch (err) {
+       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+diff -ruN a/nibbling-dev/client/src/app/(auth)/oauth/callback/page.tsx b/nibbling-dev/client/src/app/(auth)/oauth/callback/page.tsx
+--- a/nibbling-dev/client/src/app/(auth)/oauth/callback/page.tsx	2026-10-06 18:03:13.031418063 +0000
++++ b/nibbling-dev/client/src/app/(auth)/oauth/callback/page.tsx	2026-10-06 18:03:13.038864120 +0000
+@@ -3,6 +3,7 @@
+ import { useEffect, useState } from "react";
+ import { useRouter } from "next/navigation";
+ import { AuthCard } from "@/components/auth/AuthCard";
++import { setToken } from "@/lib/auth";
+ 
+ // The backend sends people here after GitHub/Discord sign-in:
+ //   /oauth/callback#token=...
+@@ -21,7 +22,7 @@
+       setFailed(true);
+       return;
+     }
+-    localStorage.setItem("nibbling_token", token);
++    setToken(token);
+     router.replace("/");
+   }, [router]);
+ 
+diff -ruN a/nibbling-dev/client/src/app/(auth)/register/page.tsx b/nibbling-dev/client/src/app/(auth)/register/page.tsx
+--- a/nibbling-dev/client/src/app/(auth)/register/page.tsx	2026-10-06 18:03:13.031470554 +0000
++++ b/nibbling-dev/client/src/app/(auth)/register/page.tsx	2026-10-06 18:03:13.038905873 +0000
+@@ -8,6 +8,7 @@
+ import { GithubIcon } from "@/components/icons/GithubIcon";
+ import { DiscordIcon } from "@/components/icons/DiscordIcon";
+ import { register, githubLoginUrl, discordLoginUrl, ApiError } from "@/lib/api";
++import { setToken } from "@/lib/auth";
+ 
+ export default function RegisterPage() {
+   const router = useRouter();
+@@ -29,8 +30,8 @@
+ 
+     setLoading(true);
+     try {
+-      const { token } = await register(username, email, password);
+-      localStorage.setItem("nibbling_token", token);
++      const { accessToken } = await register(username, email, password);
++      setToken(accessToken);
+       router.push("/");
+     } catch (err) {
+       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+diff -ruN a/nibbling-dev/client/src/components/auth/UserProvider.tsx b/nibbling-dev/client/src/components/auth/UserProvider.tsx
+--- a/nibbling-dev/client/src/components/auth/UserProvider.tsx	1970-01-01 00:00:00.000000000 +0000
++++ b/nibbling-dev/client/src/components/auth/UserProvider.tsx	2026-10-06 18:03:13.039123187 +0000
+@@ -0,0 +1,87 @@
++"use client";
++
++import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
++import { useRouter } from "next/navigation";
++import { ApiError, getMe, UserSummary } from "@/lib/api";
++import { clearToken, getToken } from "@/lib/auth";
++
++interface UserContextValue {
++  user: UserSummary;
++  logout: () => void;
++}
++
++const UserContext = createContext<UserContextValue | null>(null);
++
++export function useUser() {
++  const ctx = useContext(UserContext);
++  if (!ctx) throw new Error("useUser must be used inside <UserProvider>");
++  return ctx;
++}
++
++// Gate for everything under (app): loads the signed-in user once, sends
++// visitors without a valid token to /login, and renders children only once
++// we know who they are (so the navbar never flashes an empty state).
++export function UserProvider({ children }: { children: ReactNode }) {
++  const router = useRouter();
++  const [user, setUser] = useState<UserSummary | null>(null);
++  const [error, setError] = useState<string | null>(null);
++  const [attempt, setAttempt] = useState(0);
++
++  const logout = useCallback(() => {
++    clearToken();
++    router.replace("/login");
++  }, [router]);
++
++  useEffect(() => {
++    const token = getToken();
++    if (!token) {
++      router.replace("/login");
++      return;
++    }
++
++    let cancelled = false;
++    getMe(token)
++      .then((me) => {
++        if (!cancelled) setUser(me);
++      })
++      .catch((err) => {
++        if (cancelled) return;
++        if (err instanceof ApiError && err.status === 401) {
++          // Expired/invalid token or deleted account: start over.
++          clearToken();
++          router.replace("/login");
++        } else {
++          // Backend down / network error: don't log them out, let them retry.
++          setError("Can't reach Nibbling right now.");
++        }
++      });
++
++    return () => {
++      cancelled = true;
++    };
++  }, [router, attempt]);
++
++  if (error) {
++    return (
++      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-cream-bg px-4 text-center dark:bg-ink-bg">
++        <p className="text-ink-bg/70 dark:text-cream-bg/70">{error}</p>
++        <button
++          type="button"
++          onClick={() => {
++            setError(null);
++            setAttempt((n) => n + 1);
++          }}
++          className="rounded-xl bg-nibbling-500 px-4 py-2 text-sm font-medium text-white hover:bg-nibbling-700 dark:bg-nibbling-600 dark:hover:bg-nibbling-500"
++        >
++          Try again
++        </button>
++      </main>
++    );
++  }
++
++  if (!user) {
++    return <div className="min-h-screen bg-cream-bg dark:bg-ink-bg" aria-busy="true" />;
++  }
++
++  return <UserContext.Provider value={{ user, logout }}>{children}</UserContext.Provider>;
++}
+diff -ruN a/nibbling-dev/client/src/components/icons/NavIcons.tsx b/nibbling-dev/client/src/components/icons/NavIcons.tsx
+--- a/nibbling-dev/client/src/components/icons/NavIcons.tsx	1970-01-01 00:00:00.000000000 +0000
++++ b/nibbling-dev/client/src/components/icons/NavIcons.tsx	2026-10-06 18:03:13.039166359 +0000
+@@ -0,0 +1,54 @@
++import { SVGProps } from "react";
++
++const base: SVGProps<SVGSVGElement> = {
++  width: 20,
++  height: 20,
++  viewBox: "0 0 24 24",
++  fill: "none",
++  stroke: "currentColor",
++  strokeWidth: 2,
++  strokeLinecap: "round",
++  strokeLinejoin: "round",
++  "aria-hidden": true,
++};
++
++export function SunIcon(props: SVGProps<SVGSVGElement>) {
++  return (
++    <svg {...base} {...props}>
++      <circle cx="12" cy="12" r="4" />
++      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
++    </svg>
++  );
++}
++
++export function MoonIcon(props: SVGProps<SVGSVGElement>) {
++  return (
++    <svg {...base} {...props}>
++      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
++    </svg>
++  );
++}
++
++export function MenuIcon(props: SVGProps<SVGSVGElement>) {
++  return (
++    <svg {...base} {...props}>
++      <path d="M4 7h16M4 12h16M4 17h16" />
++    </svg>
++  );
++}
++
++export function CloseIcon(props: SVGProps<SVGSVGElement>) {
++  return (
++    <svg {...base} {...props}>
++      <path d="M6 6l12 12M18 6L6 18" />
++    </svg>
++  );
++}
++
++export function LogoutIcon(props: SVGProps<SVGSVGElement>) {
++  return (
++    <svg {...base} {...props}>
++      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
++    </svg>
++  );
++}
+diff -ruN a/nibbling-dev/client/src/components/layout/Navbar.tsx b/nibbling-dev/client/src/components/layout/Navbar.tsx
+--- a/nibbling-dev/client/src/components/layout/Navbar.tsx	1970-01-01 00:00:00.000000000 +0000
++++ b/nibbling-dev/client/src/components/layout/Navbar.tsx	2026-10-06 18:03:13.039503027 +0000
+@@ -0,0 +1,106 @@
++"use client";
++
++import Image from "next/image";
++import Link from "next/link";
++import { useEffect, useRef, useState } from "react";
++import { useUser } from "@/components/auth/UserProvider";
++import { CloseIcon, LogoutIcon, MenuIcon } from "@/components/icons/NavIcons";
++import { NAV_ITEMS } from "@/lib/nav";
++import { ThemeToggle } from "./ThemeToggle";
++import { UserBadge } from "./UserBadge";
++
++export function Navbar() {
++  const { user, logout } = useUser();
++  const [open, setOpen] = useState(false);
++  const wrapperRef = useRef<HTMLDivElement>(null);
++
++  // Close on outside click or Escape.
++  useEffect(() => {
++    if (!open) return;
++    const onPointerDown = (e: PointerEvent) => {
++      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
++    };
++    const onKeyDown = (e: KeyboardEvent) => {
++      if (e.key === "Escape") setOpen(false);
++    };
++    document.addEventListener("pointerdown", onPointerDown);
++    document.addEventListener("keydown", onKeyDown);
++    return () => {
++      document.removeEventListener("pointerdown", onPointerDown);
++      document.removeEventListener("keydown", onKeyDown);
++    };
++  }, [open]);
++
++  const menuItem =
++    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors " +
++    "hover:bg-cream-surface dark:hover:bg-ink-raised";
++
++  return (
++    <header className="px-4 pt-4 sm:px-6">
++      <div
++        ref={wrapperRef}
++        className="relative mx-auto flex max-w-7xl items-center justify-between rounded-xl2 border border-cream-border
++                   bg-white px-4 py-3 text-ink-bg shadow-sm dark:border-ink-border dark:bg-ink-surface dark:text-cream-bg"
++      >
++        {/* Left: logo + app name */}
++        <Link href="/" className="flex items-center gap-3 rounded-lg">
++          <Image src="/logo1.png" alt="" width={44} height={38} priority className="h-auto w-11" />
++          <span className="flex flex-col leading-tight">
++            <span className="font-display text-xl font-semibold">Nibbling</span>
++            <span className="text-xs text-ink-bg/60 dark:text-cream-bg/60">Daily Coding Companion</span>
++          </span>
++        </Link>
++
++        {/* Right: theme + user live in the bar on desktop only; mobile gets them in the menu */}
++        <div className="flex items-center gap-3">
++          <div className="hidden items-center gap-4 md:flex">
++            <ThemeToggle />
++            <UserBadge user={user} className="max-w-[10rem]" />
++          </div>
++
++          <button
++            type="button"
++            onClick={() => setOpen((o) => !o)}
++            aria-label={open ? "Close menu" : "Open menu"}
++            aria-expanded={open}
++            aria-controls="navbar-menu"
++            className="flex h-10 w-10 items-center justify-center rounded-lg transition-colors
++                       hover:bg-cream-surface dark:hover:bg-ink-raised"
++          >
++            {open ? <CloseIcon /> : <MenuIcon />}
++          </button>
++        </div>
++
++        {open && (
++          <nav
++            id="navbar-menu"
++            aria-label="Main menu"
++            className="absolute right-0 top-full z-50 mt-2 w-full rounded-xl2 border border-cream-border bg-white p-2
++                       shadow-lg dark:border-ink-border dark:bg-ink-surface md:w-64"
++          >
++            {/* Mobile only: user + theme */}
++            <div className="md:hidden">
++              <div className="flex items-center justify-between gap-3 px-3 py-2">
++                <UserBadge user={user} />
++                <ThemeToggle />
++              </div>
++              <div className="my-2 h-px bg-cream-border dark:bg-ink-border" />
++            </div>
++
++            {NAV_ITEMS.map((item) => (
++              <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className={menuItem}>
++                {item.label}
++              </Link>
++            ))}
++
++            <div className="my-2 h-px bg-cream-border dark:bg-ink-border" />
++            <button type="button" onClick={logout} className={menuItem}>
++              <LogoutIcon width={18} height={18} />
++              Log out
++            </button>
++          </nav>
++        )}
++      </div>
++    </header>
++  );
++}
+diff -ruN a/nibbling-dev/client/src/components/layout/ThemeToggle.tsx b/nibbling-dev/client/src/components/layout/ThemeToggle.tsx
+--- a/nibbling-dev/client/src/components/layout/ThemeToggle.tsx	1970-01-01 00:00:00.000000000 +0000
++++ b/nibbling-dev/client/src/components/layout/ThemeToggle.tsx	2026-10-06 18:03:13.039458777 +0000
+@@ -0,0 +1,40 @@
++"use client";
++
++import { useTheme } from "next-themes";
++import { MoonIcon, SunIcon } from "@/components/icons/NavIcons";
++
++// The active side is styled purely with `dark:` classes (next-themes sets
++// the class on <html> before hydration), so there's no mounted-state dance
++// and no hydration mismatch.
++const segment =
++  "flex h-8 w-8 items-center justify-center rounded-full transition-colors";
++
++export function ThemeToggle() {
++  const { setTheme } = useTheme();
++
++  return (
++    <div
++      role="group"
++      aria-label="Color theme"
++      className="flex items-center gap-1 rounded-full border border-cream-border bg-cream-surface p-1
++                 dark:border-ink-border dark:bg-ink-raised"
++    >
++      <button
++        type="button"
++        onClick={() => setTheme("light")}
++        aria-label="Light mode"
++        className={`${segment} bg-nibbling-500 text-white dark:bg-transparent dark:text-cream-bg/50 dark:hover:text-cream-bg`}
++      >
++        <SunIcon width={16} height={16} />
++      </button>
++      <button
++        type="button"
++        onClick={() => setTheme("dark")}
++        aria-label="Dark mode"
++        className={`${segment} text-ink-bg/50 hover:text-ink-bg dark:bg-nibbling-600 dark:text-white dark:hover:text-white`}
++      >
++        <MoonIcon width={16} height={16} />
++      </button>
++    </div>
++  );
++}
+diff -ruN a/nibbling-dev/client/src/components/layout/UserBadge.tsx b/nibbling-dev/client/src/components/layout/UserBadge.tsx
+--- a/nibbling-dev/client/src/components/layout/UserBadge.tsx	1970-01-01 00:00:00.000000000 +0000
++++ b/nibbling-dev/client/src/components/layout/UserBadge.tsx	2026-10-06 18:03:13.039484149 +0000
+@@ -0,0 +1,25 @@
++import { UserSummary } from "@/lib/api";
++
++// No avatar upload yet, so this is a letter on a green circle. When the
++// companion/avatar image exists, swap the inner <span> for an <Image>.
++export function Avatar({ username, size = 36 }: { username: string; size?: number }) {
++  return (
++    <span
++      style={{ width: size, height: size }}
++      className="flex shrink-0 items-center justify-center rounded-full bg-nibbling-100 font-display text-base font-semibold
++                 text-nibbling-700 ring-1 ring-nibbling-200 dark:bg-nibbling-800 dark:text-nibbling-200 dark:ring-nibbling-700"
++      aria-hidden="true"
++    >
++      {username.charAt(0).toUpperCase()}
++    </span>
++  );
++}
++
++export function UserBadge({ user, className = "" }: { user: UserSummary; className?: string }) {
++  return (
++    <div className={`flex min-w-0 items-center gap-2.5 ${className}`}>
++      <Avatar username={user.username} />
++      <span className="truncate text-sm font-medium">{user.username}</span>
++    </div>
++  );
++}
+diff -ruN a/nibbling-dev/client/src/lib/api.ts b/nibbling-dev/client/src/lib/api.ts
+--- a/nibbling-dev/client/src/lib/api.ts	2026-10-06 18:03:13.031997394 +0000
++++ b/nibbling-dev/client/src/lib/api.ts	2026-10-06 18:03:13.039571273 +0000
+@@ -26,9 +26,24 @@
+   return data as T;
+ }
+ 
++export interface UserSummary {
++  id: string;
++  username: string;
++  emailVerified: boolean;
++}
++
++// What /login and /register return. NOTE the field is "accessToken",
++// not "token" (only the GitHub/Discord redirect uses #token=...).
++export interface AuthResponse {
++  accessToken: string;
++  tokenType: string;
++  expiresInMs: number;
++  user: UserSummary;
++}
++
+ // The backend's LoginRequest expects "email" (not username).
+ export function login(email: string, password: string) {
+-  return postJson<{ token: string }>(
++  return postJson<AuthResponse>(
+     "/api/auth/login",
+     { email, password },
+     "Invalid email or password.",
+@@ -36,13 +51,27 @@
+ }
+ 
+ export function register(username: string, email: string, password: string) {
+-  return postJson<{ token: string }>(
++  return postJson<AuthResponse>(
+     "/api/auth/register",
+     { username, email, password },
+     "Could not create your account.",
+   );
+ }
+ 
++// ---- Current user ----
++
++// Needs the JWT; a 401 means it's missing, expired or the account is gone.
++export async function getMe(token: string): Promise<UserSummary> {
++  const res = await fetch(`${API_URL}/api/auth/me`, {
++    headers: { Authorization: `Bearer ${token}` },
++  });
++  const data = await res.json().catch(() => null);
++  if (!res.ok) {
++    throw new ApiError(data?.message ?? "Could not load your account.", res.status);
++  }
++  return data as UserSummary;
++}
++
+ // ---- Email verification ----
+ 
+ export function verifyEmail(token: string) {
+diff -ruN a/nibbling-dev/client/src/lib/auth.ts b/nibbling-dev/client/src/lib/auth.ts
+--- a/nibbling-dev/client/src/lib/auth.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/nibbling-dev/client/src/lib/auth.ts	2026-10-06 18:03:13.039639602 +0000
+@@ -0,0 +1,16 @@
++// Single home for the JWT's localStorage key so login, OAuth callback and the
++// app shell can't drift apart. (Swap to an httpOnly cookie later and this is
++// the only file that needs to change.)
++const TOKEN_KEY = "nibbling_token";
++
++export function getToken(): string | null {
++  return localStorage.getItem(TOKEN_KEY);
++}
++
++export function setToken(token: string) {
++  localStorage.setItem(TOKEN_KEY, token);
++}
++
++export function clearToken() {
++  localStorage.removeItem(TOKEN_KEY);
++}
+diff -ruN a/nibbling-dev/client/src/lib/nav.ts b/nibbling-dev/client/src/lib/nav.ts
+--- a/nibbling-dev/client/src/lib/nav.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/nibbling-dev/client/src/lib/nav.ts	2026-10-06 18:03:13.039660940 +0000
+@@ -0,0 +1,15 @@
++// Links shown in the navbar's burger menu. Routes only live here, not in
++// lib/api.ts (that file is strictly for talking to the Spring Boot backend).
++// Add an entry when its page exists, otherwise the link just 404s.
++export interface NavItem {
++  label: string;
++  href: string;
++}
++
++export const NAV_ITEMS: NavItem[] = [
++  { label: "Home", href: "/" },
++  // { label: "Today", href: "/today" },
++  // { label: "Calendar", href: "/calendar" },
++  // { label: "Stats", href: "/stats" },
++  // { label: "Account", href: "/account" },
++];
+diff -ruN a/nibbling-dev/server/src/main/java/com/nibbling/server/controller/AuthController.java b/nibbling-dev/server/src/main/java/com/nibbling/server/controller/AuthController.java
+--- a/nibbling-dev/server/src/main/java/com/nibbling/server/controller/AuthController.java	2026-10-06 18:03:13.032652573 +0000
++++ b/nibbling-dev/server/src/main/java/com/nibbling/server/controller/AuthController.java	2026-10-06 18:03:14.267925488 +0000
+@@ -7,10 +7,13 @@
+ import com.nibbling.server.dto.RegisterRequest;
+ import com.nibbling.server.dto.ResetPasswordRequest;
+ import com.nibbling.server.dto.TokenRequest;
++import com.nibbling.server.dto.UserSummary;
++import com.nibbling.server.security.UserPrincipal;
+ import com.nibbling.server.service.AuthService;
+ import jakarta.validation.Valid;
+ import org.springframework.http.HttpStatus;
+ import org.springframework.http.ResponseEntity;
++import org.springframework.security.core.annotation.AuthenticationPrincipal;
+ import org.springframework.web.bind.annotation.*;
+ 
+ @RestController
+@@ -34,6 +37,12 @@
+         return ResponseEntity.ok(authService.login(request));
+     }
+ 
++    // Requires a valid JWT (not in PUBLIC_AUTH_POSTS, and it's a GET anyway).
++    @GetMapping("/me")
++    public ResponseEntity<UserSummary> me(@AuthenticationPrincipal UserPrincipal principal) {
++        return ResponseEntity.ok(authService.getCurrentUser(principal.getId()));
++    }
++
+     // ---- NEW ----
+ 
+     @PostMapping("/verify-email")
+diff -ruN a/nibbling-dev/server/src/main/java/com/nibbling/server/service/AuthService.java b/nibbling-dev/server/src/main/java/com/nibbling/server/service/AuthService.java
+--- a/nibbling-dev/server/src/main/java/com/nibbling/server/service/AuthService.java	2026-10-06 18:03:13.033685231 +0000
++++ b/nibbling-dev/server/src/main/java/com/nibbling/server/service/AuthService.java	2026-10-06 18:03:14.269559368 +0000
+@@ -18,6 +18,8 @@
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+ 
++import java.util.UUID;
++
+ @Service
+ public class AuthService {
+ 
+@@ -83,6 +85,15 @@
+         return buildAuthResponse(user);
+     }
+ 
++    // The signed-in user's public summary (for the navbar, etc). The JWT only
++    // carries id + email, so the username has to come from the database.
++    @Transactional(readOnly = true)
++    public UserSummary getCurrentUser(UUID userId) {
++        User user = userRepository.findById(userId)
++                .orElseThrow(() -> new InvalidCredentialsException("Account not found"));
++        return UserSummary.from(user);
++    }
++
+     // ---- Email verification (NEW) ----
+ 
+     @Transactional

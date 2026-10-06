@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { GithubIcon } from "@/components/icons/GithubIcon";
 import { DiscordIcon } from "@/components/icons/DiscordIcon";
 import { register, githubLoginUrl, discordLoginUrl, ApiError } from "@/lib/api";
+import { setToken } from "@/lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -29,8 +30,8 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const { token } = await register(username, email, password);
-      localStorage.setItem("nibbling_token", token);
+      const { accessToken } = await register(username, email, password);
+      setToken(accessToken);
       router.push("/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");

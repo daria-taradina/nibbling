@@ -83,9 +83,9 @@ function VerifyEmailStatus() {
   if (status === "success") {
     return (
       <div className="flex flex-col gap-3 text-sm">
-        <p>Your email is verified. You're all set.</p>
+        <p>Your email is verified. You&apos;re all set.</p>
         <Link href="/" className="text-green-600 hover:underline dark:text-green-400">
-          Go to today's challenge
+          Go to today&apos;s challenge
         </Link>
       </div>
     );
@@ -94,7 +94,7 @@ function VerifyEmailStatus() {
   return (
     <div className="flex flex-col gap-4 text-sm">
       <p className="text-red-600 dark:text-red-400">{message}</p>
-      <p>Enter your email and we'll send you a fresh link.</p>
+      <p>Enter your email and we&apos;ll send you a fresh link.</p>
       <ResendForm />
     </div>
   );

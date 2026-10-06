@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { setToken } from "@/lib/auth";
 import { GithubIcon } from "@/components/icons/GithubIcon";
 import { DiscordIcon } from "@/components/icons/DiscordIcon";
 import {
@@ -16,31 +17,29 @@ import {
   ApiError,
 } from "@/lib/api";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Show a message when GitHub/Discord sign-in sent us back with ?error=...
-  useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get("error");
-    if (code) {
-      setError(OAUTH_ERROR_MESSAGES[code] ?? OAUTH_ERROR_MESSAGES.oauth);
-    }
-  }, []);
+  // GitHub/Discord sign-in sends us back with ?error=... — derived, not stored.
+  const oauthCode = searchParams.get("error");
+  const oauthError = oauthCode ? (OAUTH_ERROR_MESSAGES[oauthCode] ?? OAUTH_ERROR_MESSAGES.oauth) : null;
+  const shownError = error ?? oauthError;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const { token } = await login(email, password);
+      const { accessToken } = await login(email, password);
       // MVP: localStorage is simplest to wire today. Once the backend can
       // set an httpOnly cookie on /api/auth/login, switch to that instead —
       // it's not readable by JS, so it holds up better against XSS.
-      localStorage.setItem("nibbling_token", token);
+      setToken(accessToken);
       router.push("/");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
@@ -85,7 +84,7 @@ export default function LoginPage() {
           Forgot password?
         </Link>
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {shownError && <p className="text-sm text-red-600 dark:text-red-400">{shownError}</p>}
 
         <Button type="submit" loading={loading}>
           Log in
@@ -113,5 +112,13 @@ export default function LoginPage() {
         </a>
       </div>
     </AuthCard>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

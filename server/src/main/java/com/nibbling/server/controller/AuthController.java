@@ -7,10 +7,13 @@ import com.nibbling.server.dto.MessageResponse;
 import com.nibbling.server.dto.RegisterRequest;
 import com.nibbling.server.dto.ResetPasswordRequest;
 import com.nibbling.server.dto.TokenRequest;
+import com.nibbling.server.dto.UserSummary;
+import com.nibbling.server.security.UserPrincipal;
 import com.nibbling.server.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,6 +35,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    // Requires a valid JWT (not in PUBLIC_AUTH_POSTS, and it's a GET anyway).
+    @GetMapping("/me")
+    public ResponseEntity<UserSummary> me(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(authService.getCurrentUser(principal.getId()));
     }
 
     // ---- NEW ----

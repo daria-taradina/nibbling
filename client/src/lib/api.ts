@@ -26,9 +26,24 @@ async function postJson<T>(path: string, body: unknown, fallbackError: string): 
   return data as T;
 }
 
+export interface UserSummary {
+  id: string;
+  username: string;
+  emailVerified: boolean;
+}
+
+// What /login and /register return. NOTE the field is "accessToken",
+// not "token" (only the GitHub/Discord redirect uses #token=...).
+export interface AuthResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresInMs: number;
+  user: UserSummary;
+}
+
 // The backend's LoginRequest expects "email" (not username).
 export function login(email: string, password: string) {
-  return postJson<{ token: string }>(
+  return postJson<AuthResponse>(
     "/api/auth/login",
     { email, password },
     "Invalid email or password.",
@@ -36,11 +51,25 @@ export function login(email: string, password: string) {
 }
 
 export function register(username: string, email: string, password: string) {
-  return postJson<{ token: string }>(
+  return postJson<AuthResponse>(
     "/api/auth/register",
     { username, email, password },
     "Could not create your account.",
   );
+}
+
+// ---- Current user ----
+
+// Needs the JWT; a 401 means it's missing, expired or the account is gone.
+export async function getMe(token: string): Promise<UserSummary> {
+  const res = await fetch(`${API_URL}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new ApiError(data?.message ?? "Could not load your account.", res.status);
+  }
+  return data as UserSummary;
 }
 
 // ---- Email verification ----
