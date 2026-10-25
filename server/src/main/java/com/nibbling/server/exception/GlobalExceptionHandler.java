@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -57,6 +58,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidToken(InvalidTokenException ex) {
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse(400, "Bad Request", ex.getMessage()));
+    }
+
+    // Quiz: answers that aren't part of today's quiz, or nothing answered yet.
+    @ExceptionHandler(InvalidAnswerException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidAnswer(InvalidAnswerException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(400, "Bad Request", ex.getMessage()));
+    }
+
+    // Quiz: attempt is already submitted / not started.
+    @ExceptionHandler(ChallengeStateException.class)
+    public ResponseEntity<ErrorResponse> handleChallengeState(ChallengeStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(409, "Conflict", ex.getMessage()));
+    }
+
+    // Quiz: submit and the nightly auto-submit hit the same attempt at once.
+    // The loser is told to refetch; the winner already graded it.
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(409, "Conflict", "Your quiz was just updated, please reload"));
     }
 
     // Safety net for the race condition where two requests both pass the
