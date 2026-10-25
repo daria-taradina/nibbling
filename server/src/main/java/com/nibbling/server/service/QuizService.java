@@ -137,7 +137,10 @@ public class QuizService {
 
     // ---- internals ----
 
-    private void closeOverdueFor(UUID userId) {
+    // Also called by StatsService so yesterday's unfinished attempt is graded
+    // (and counted toward XP and streak) before anything is totalled up.
+    @Transactional
+    public void closeOverdueFor(UUID userId) {
         for (Attempt a : attempts.findByUserIdAndStatusAndDeadlineAtBefore(
                 userId, AttemptStatus.IN_PROGRESS, puzzleDay.now())) {
             closeIfOverdue(a.getId());

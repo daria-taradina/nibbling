@@ -23,6 +23,20 @@ public interface AttemptRepository extends JpaRepository<Attempt, UUID> {
 
     List<Attempt> findByStatusAndDeadlineAtBefore(AttemptStatus status, Instant cutoff);
 
+    // ---- stats (XP, streak, calendar) ----
+
+    @Query("select coalesce(sum(a.xp), 0L) from Attempt a where a.userId = :userId and a.status = :status")
+    long totalXp(@Param("userId") UUID userId, @Param("status") AttemptStatus status);
+
+    // Days the player actually completed (a tier was earned); auto-submitted empty days don't count.
+    @Query("select a.puzzleDate from Attempt a where a.userId = :userId and a.status = :status and a.tier is not null")
+    List<LocalDate> completedDates(@Param("userId") UUID userId, @Param("status") AttemptStatus status);
+
+    @Query("select min(a.puzzleDate) from Attempt a where a.userId = :userId")
+    Optional<LocalDate> firstPlayedOn(@Param("userId") UUID userId);
+
+    List<Attempt> findByUserIdAndPuzzleDateBetweenOrderByPuzzleDate(UUID userId, LocalDate from, LocalDate to);
+
     // Row-locking reads for anything that changes an attempt (save draft, submit,
     // auto-submit). They serialize per attempt, so the player's Submit and the
     // nightly sweep can never grade the same attempt twice.
