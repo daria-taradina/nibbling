@@ -44,10 +44,9 @@ export function Navbar() {
       >
         {/* Left: logo + app name */}
         <Link href="/" className="flex items-center gap-3 rounded-lg">
-          <Image src="/logo1.png" alt="" width={44} height={38} priority className="h-auto w-11" />
+          <Image src="/logo1.png" alt="" width={44} height={38} priority className="h-auto w-14" />
           <span className="flex flex-col leading-tight">
-            <span className="font-display text-xl font-semibold">Nibbling</span>
-            <span className="text-xs text-ink-bg/60 dark:text-cream-bg/60">Daily Coding Companion</span>
+            <span className="font-display text-3xl font-normal">Nibbling</span>
           </span>
         </Link>
 
