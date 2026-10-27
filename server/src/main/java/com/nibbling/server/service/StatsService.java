@@ -6,7 +6,6 @@ import com.nibbling.server.dto.StatsResponse;
 import com.nibbling.server.entity.Attempt;
 import com.nibbling.server.entity.AttemptStatus;
 import com.nibbling.server.repository.AttemptRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,19 +21,21 @@ import java.util.UUID;
 @Service
 public class StatsService {
 
+    // XP required to reach each level. Index = level - 1, so level 1 needs 0 XP,
+    // level 2 needs 100, level 3 needs 300, etc. Level 5 is the cap.
+    //   Hatchling (1) -> Learner (2) -> Coder (3) -> Developer (4) -> Code Master (5)
+    private static final int[] LEVEL_THRESHOLDS = {0, 100, 300, 600, 1000};
+
     private final PuzzleDay puzzleDay;
     private final AttemptRepository attempts;
     private final QuizService quizService;
-    private final int xpPerLevel;
 
     public StatsService(PuzzleDay puzzleDay,
                         AttemptRepository attempts,
-                        QuizService quizService,
-                        @Value("${quiz.level.xp-per-level:300}") int xpPerLevel) {
+                        QuizService quizService) {
         this.puzzleDay = puzzleDay;
         this.attempts = attempts;
         this.quizService = quizService;
-        this.xpPerLevel = xpPerLevel;
     }
 
     @Transactional
@@ -46,12 +47,18 @@ public class StatsService {
         StreakCalculator.Streaks streaks =
                 StreakCalculator.compute(attempts.completedDates(userId, AttemptStatus.SUBMITTED), today);
 
+        int level = levelFor(totalXp);
+        int floorXp = LEVEL_THRESHOLDS[level - 1];
+        int ceilXp = level < LEVEL_THRESHOLDS.length ? LEVEL_THRESHOLDS[level] : Integer.MAX_VALUE;
+        int xpPerLevel = ceilXp == Integer.MAX_VALUE ? LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1] - floorXp
+                : ceilXp - floorXp;
+
         LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         return new StatsResponse(
                 today,
                 totalXp,
-                totalXp / xpPerLevel + 1,
-                totalXp % xpPerLevel,
+                level,
+                totalXp - floorXp,
                 xpPerLevel,
                 streaks.current(),
                 streaks.longest(),
@@ -81,5 +88,15 @@ public class StatsService {
     private static DayResult toDay(Attempt a) {
         return new DayResult(a.getPuzzleDate(), a.getStatus().name(),
                 a.getTier() == null ? null : a.getTier().name());
+    }
+
+    // Returns 1-based level (capped at the last tier).
+    private static int levelFor(int totalXp) {
+        int level = 1;
+        for (int i = 1; i < LEVEL_THRESHOLDS.length; i++) {
+            if (totalXp >= LEVEL_THRESHOLDS[i]) level = i + 1;
+            else break;
+        }
+        return level;
     }
 }

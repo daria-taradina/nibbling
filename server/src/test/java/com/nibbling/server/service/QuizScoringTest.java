@@ -13,14 +13,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class QuizScoringTest {
 
-    private final QuizScoring scoring = new QuizScoring(90, 60, 30, 20, 10);
+    private final QuizScoring scoring = new QuizScoring(90, 60);
 
     @Test
     void allCorrectIsFeast() {
         Outcome o = scoring.score(List.of(new Item(1, true), new Item(1, true), new Item(2, true),
                 new Item(2, true), new Item(3, true)), true);
         assertEquals(Tier.FEAST, o.tier());
-        assertEquals(30, o.xp());
+        assertEquals(25, o.xp()); // 5 correct * 5 XP each
         assertEquals(5, o.correctCount());
     }
 
@@ -30,7 +30,7 @@ class QuizScoringTest {
         Outcome o = scoring.score(List.of(new Item(1, false), new Item(1, true), new Item(2, true),
                 new Item(2, true), new Item(3, true)), true);
         assertEquals(Tier.MEAL, o.tier());
-        assertEquals(20, o.xp());
+        assertEquals(20, o.xp()); // 4 correct * 5 XP each
     }
 
     @Test
@@ -45,6 +45,7 @@ class QuizScoringTest {
         Outcome o = scoring.score(List.of(new Item(1, true), new Item(1, true), new Item(1, true),
                 new Item(1, false), new Item(1, false)), true);
         assertEquals(Tier.MEAL, o.tier());
+        assertEquals(15, o.xp()); // 3 correct * 5 XP each
     }
 
     @Test
@@ -52,7 +53,15 @@ class QuizScoringTest {
         Outcome o = scoring.score(List.of(new Item(1, true), new Item(1, true), new Item(1, false),
                 new Item(1, false), new Item(1, false)), true);
         assertEquals(Tier.SNACK, o.tier());
-        assertEquals(10, o.xp());
+        assertEquals(10, o.xp()); // 2 correct * 5 XP each
+    }
+
+    @Test
+    void zeroCorrectButAnsweredIsSnackWithZeroXp() {
+        Outcome o = scoring.score(List.of(new Item(1, false), new Item(1, false), new Item(2, false),
+                new Item(2, false), new Item(3, false)), true);
+        assertEquals(Tier.SNACK, o.tier());
+        assertEquals(0, o.xp()); // 0 correct * 5 XP
     }
 
     @Test
