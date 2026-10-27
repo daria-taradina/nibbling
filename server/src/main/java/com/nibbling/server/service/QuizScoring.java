@@ -14,6 +14,7 @@ import java.util.List;
 //   otherwise                 -> SNACK   (answering anything earns at least this)
 //   no answers at all         -> no tier (Miss), 0 XP
 //
+// XP = 5 per correct question (max 25 for a perfect 5-question quiz).
 // Percent thresholds are compared with integer math to avoid floating-point edge cases.
 public final class QuizScoring {
 
@@ -21,21 +22,17 @@ public final class QuizScoring {
 
     public record Outcome(int correctCount, int total, double score, Tier tier, int xp) {}
 
+    private static final int XP_PER_CORRECT = 5;
+
     private final int feastMinPercent;
     private final int mealMinPercent;
-    private final int feastXp;
-    private final int mealXp;
-    private final int snackXp;
 
-    public QuizScoring(int feastMinPercent, int mealMinPercent, int feastXp, int mealXp, int snackXp) {
+    public QuizScoring(int feastMinPercent, int mealMinPercent) {
         if (mealMinPercent > feastMinPercent) {
             throw new IllegalArgumentException("meal threshold must not exceed feast threshold");
         }
         this.feastMinPercent = feastMinPercent;
         this.mealMinPercent = mealMinPercent;
-        this.feastXp = feastXp;
-        this.mealXp = mealXp;
-        this.snackXp = snackXp;
     }
 
     public Outcome score(List<Item> items, boolean anyAnswered) {
@@ -62,14 +59,6 @@ public final class QuizScoring {
         } else {
             tier = Tier.SNACK;
         }
-        return new Outcome(correctCount, items.size(), score, tier, xpFor(tier));
-    }
-
-    private int xpFor(Tier tier) {
-        return switch (tier) {
-            case FEAST -> feastXp;
-            case MEAL -> mealXp;
-            case SNACK -> snackXp;
-        };
+        return new Outcome(correctCount, items.size(), score, tier, correctCount * XP_PER_CORRECT);
     }
 }

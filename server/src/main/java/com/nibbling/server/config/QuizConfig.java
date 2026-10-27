@@ -21,11 +21,8 @@ public class QuizConfig {
     @Bean
     public QuizScoring quizScoring(
             @Value("${quiz.tier.feast-min-percent:90}") int feastMinPercent,
-            @Value("${quiz.tier.meal-min-percent:60}") int mealMinPercent,
-            @Value("${quiz.xp.feast:30}") int feastXp,
-            @Value("${quiz.xp.meal:20}") int mealXp,
-            @Value("${quiz.xp.snack:10}") int snackXp
+            @Value("${quiz.tier.meal-min-percent:60}") int mealMinPercent
     ) {
-        return new QuizScoring(feastMinPercent, mealMinPercent, feastXp, mealXp, snackXp);
+        return new QuizScoring(feastMinPercent, mealMinPercent);
     }
 }

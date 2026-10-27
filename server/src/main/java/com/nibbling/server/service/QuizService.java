@@ -20,6 +20,7 @@ import com.nibbling.server.repository.AttemptAnswerRepository;
 import com.nibbling.server.repository.AttemptRepository;
 import com.nibbling.server.repository.DailyChallengeQuestionRepository;
 import com.nibbling.server.repository.QuestionRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 public class QuizService {
 
     private static final int MAX_KEYS_PER_QUESTION = 10;
+    private static final int STREAK_BONUS_EVERY = 7;
 
     private final PuzzleDay puzzleDay;
     private final DailyChallengePlanner planner;
@@ -55,6 +57,7 @@ public class QuizService {
     private final DailyChallengeQuestionRepository dailyQuestions;
     private final QuestionRepository questions;
     private final QuizScoring scoring;
+    private final int streakBonusXp;
 
     public QuizService(PuzzleDay puzzleDay,
                        DailyChallengePlanner planner,
@@ -62,7 +65,8 @@ public class QuizService {
                        AttemptAnswerRepository answers,
                        DailyChallengeQuestionRepository dailyQuestions,
                        QuestionRepository questions,
-                       QuizScoring scoring) {
+                       QuizScoring scoring,
+                       @Value("${quiz.streak-bonus-xp:25}") int streakBonusXp) {
         this.puzzleDay = puzzleDay;
         this.planner = planner;
         this.attempts = attempts;
@@ -70,6 +74,7 @@ public class QuizService {
         this.dailyQuestions = dailyQuestions;
         this.questions = questions;
         this.scoring = scoring;
+        this.streakBonusXp = streakBonusXp;
     }
 
     @Transactional
@@ -201,10 +206,26 @@ public class QuizService {
         }
         QuizScoring.Outcome outcome = scoring.score(items, !selected.isEmpty());
 
+        // Add streak bonus if completing this day hits a 7-day multiple.
+        // Only counts when a tier was earned (not a Miss).
+        int xp = outcome.xp();
+        if (outcome.tier() != null) {
+            List<java.time.LocalDate> completedBefore =
+                    attempts.completedDates(attempt.getUserId(), AttemptStatus.SUBMITTED);
+            // Include today in the streak calculation.
+            completedBefore = new java.util.ArrayList<>(completedBefore);
+            completedBefore.add(attempt.getPuzzleDate());
+            StreakCalculator.Streaks streaks =
+                    StreakCalculator.compute(completedBefore, attempt.getPuzzleDate());
+            if (streaks.current() > 0 && streaks.current() % STREAK_BONUS_EVERY == 0) {
+                xp += streakBonusXp;
+            }
+        }
+
         // Auto-submitted attempts are stamped with the deadline, not whenever we got around to it.
         Instant at = reason == SubmitReason.DEADLINE ? attempt.getDeadlineAt() : puzzleDay.now();
         attempt.markSubmitted(reason, at, outcome.correctCount(), outcome.total(),
-                outcome.score(), outcome.tier(), outcome.xp());
+                outcome.score(), outcome.tier(), xp);
         attempts.save(attempt);
     }
 

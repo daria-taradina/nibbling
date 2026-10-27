@@ -1,8 +1,9 @@
 import { Card, CardError, CardSkeleton } from "@/components/ui/Card";
 import { StatsResponse } from "@/lib/api";
 
-// Level names; the last one repeats for any higher level.
-const LEVEL_TITLES = ["Beginner", "Learner", "Coder", "Hacker", "Architect"];
+// Level names matching the server's LEVEL_THRESHOLDS (0/100/300/600/1000 XP).
+// The last one is the cap (Code Master stays at level 5).
+const LEVEL_TITLES = ["Hatchling", "Learner", "Coder", "Developer", "Code Master"];
 
 export function levelTitle(level: number) {
   return LEVEL_TITLES[Math.min(level, LEVEL_TITLES.length) - 1];
