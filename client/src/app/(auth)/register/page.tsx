@@ -43,7 +43,7 @@ export default function RegisterPage() {
   return (
     <AuthCard
       title="Start your streak"
-      subtitle="One problem a day. Watch your companion grow."
+      subtitle="One challenge a day. Watch your companion grow."
       footerText="Already have an account?"
       footerLinkText="Log in"
       footerLinkHref="/login"
