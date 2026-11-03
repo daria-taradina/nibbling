@@ -246,8 +246,30 @@ Authenticated requests: `Authorization: Bearer <accessToken>`.
   auto-updates start causing confusing schema drift once more people are
   adding columns independently.
 
-## Team
+## 💚 Contributors
 
-- Daria — [role/focus TBD]
-- [Teammate 2]
-- [Teammate 3]
+<table>
+  <tr>
+    <td align="center" width="340">
+      <a href="https://github.com/daria-taradina">
+        <img src="https://github.com/daria-taradina.png?size=150" width="90" alt="Daria Taradina" />
+      </a>
+      <br /><br />
+      <a href="https://github.com/dariatarad">
+        <img src="https://img.shields.io/badge/dariataradina-e8b4d0?style=for-the-badge&logo=github&logoColor=333" />
+      </a>
+      <br />
+      <sub></sub>
+    </td>
+    <td align="center" width="340">
+      <a href="https://github.com/realfarshadazam-lab">
+        <img src="https://github.com/realfarshadazam-lab.png?size=150" width="90" alt="Farshad Azam" />
+      </a>
+      <br /><br />
+      <a href="https://github.com/realfarshadazam-lab">
+        <img src="https://img.shields.io/badge/realfarshadazamlab-7DD17D?style=for-the-badge&logo=github&logoColor=333" />
+      </a>
+      <br />
+      <sub></sub>
+    </td>
+</table>
