@@ -1,19 +1,18 @@
-# <img width="53" alt="logo1" src="https://github.com/user-attachments/assets/133bcb1e-b467-4e1f-9e08-e039431ae077" /> Nibbling
+# <img width="44" alt="Nibbling logo" src="https://github.com/user-attachments/assets/133bcb1e-b467-4e1f-9e08-e039431ae077" /> Nibbling
 
-*(working title)* — a daily, bite-sized coding puzzle app. Solve today's problem, get a Wordle-style shareable result, and grow a companion creature based on how well you did. COMP 490/L Senior Design Project.
+A daily bite-sized coding quiz app. Answer 5 questions, earn XP, keep a streak, share your result. COMP 490/L Senior Design Project.
 
-## 💻 Tech Stack
+## Tech stack
 
 | Layer | Choice |
 |---|---|
-| Frontend | Next.js (App Router), TypeScript, Tailwind CSS |
-| Backend | Spring Boot (Java), Maven |
-| Database | PostgreSQL (Neon / Supabase, free tier) |
-| Code execution | Judge0 |
+| Frontend | Next.js 15 (App Router), TypeScript, Tailwind CSS v4 |
+| Backend | Spring Boot 4, Java 25, Maven |
+| Database | PostgreSQL (Neon — free tier works fine) |
 | Frontend hosting | Vercel |
 | Backend hosting | Render |
 
-## 🗂 Repo Structure
+## Repo structure
 
 ```
 nibbling/
@@ -21,70 +20,19 @@ nibbling/
   server/   # Spring Boot API
 ```
 
-## :rocket: Getting Started
+---
+
+## Local setup
 
 ### Prerequisites
 
-- Node.js (LTS)
-- Java 25 (or matching JDK installed locally)
-- Maven (or use the included `./mvnw` wrapper — no separate install needed)
-- A PostgreSQL instance (Neon or Supabase free tier)
+- Node.js LTS
+- Java 25 JDK
+- A PostgreSQL instance — Neon free tier or a local install both work
 
-### Frontend (`client`)
+### 1. Database
 
-```bash
-cd client
-npm install
-npm run dev
-```
-
-Runs at `http://localhost:3000`.
-
-### Backend (`server`)
-
-The backend reads its database credentials from environment variables — nothing is hardcoded in `application.properties`. Set the following before running:
-
-```
-DB_URL=jdbc:postgresql://<host>:<port>/<database>
-DB_USERNAME=<your-db-username>
-DB_PASSWORD=<your-db-password>
-```
-
-**In VS Code:** set these in `server/.vscode/launch.json` under the `"env"` key (this file is gitignored, so your real values never get committed — see `server/.vscode/launch.json` for the template shape).
-
-**In IntelliJ:** Run → Edit Configurations → Environment variables field.
-
-Then run:
-
-```bash
-cd server
-./mvnw spring-boot:run
-```
-
-Runs at `http://localhost:8080`.
-
-## Environment Variables
-
-No `.env` files are committed anywhere in this repo. Each person sets their own local values through their IDE's run configuration (see above). Production values (Render, Vercel) are set directly in each platform's dashboard.
-
-## Status
-
-🚧 Early scaffold — client and server run independently, not yet wired together. No database connected yet.
-
-# Nibbling backend — registration + JWT login
-
-Setup guide for teammates pulling this branch for the first time.
-
-## 1. Install PostgreSQL
-
-Download from [postgresql.org/download](https://www.postgresql.org/download/) for your OS.
-During setup you'll set a password for the `postgres` superuser — remember it,
-you need it once for step 2. Leave the port at the default `5432`.
-
-## 2. Create the app's database + user
-
-Open **SQL Shell (psql)** (installed alongside Postgres) or **pgAdmin**'s
-Query Tool, and run:
+Create a database and user. In psql or pgAdmin:
 
 ```sql
 CREATE DATABASE nibbling;
@@ -92,76 +40,37 @@ CREATE USER nibbling WITH PASSWORD 'devpassword';
 GRANT ALL PRIVILEGES ON DATABASE nibbling TO nibbling;
 ```
 
-Then connect to the new `nibbling` database specifically (`\c nibbling` in
-psql, or open a new Query Tool against it in pgAdmin) and run:
+Then connect to the `nibbling` database and run:
 
 ```sql
 GRANT ALL ON SCHEMA public TO nibbling;
 ```
 
-(That last grant is needed on Postgres 15+, which locks down the `public`
-schema by default.)
+Required on Postgres 15+ which locks the public schema by default.
 
-Use these exact values (`nibbling` / `nibbling` / `devpassword`) for local
-dev — it's not shared data, everyone has their own local Postgres, but using
-identical values means everyone's `launch.json` looks the same.
+The app uses `ddl-auto=update`, so Hibernate creates and updates all tables on startup — no manual SQL needed except for seed data (see below).
 
-## 3. pom.xml — dependencies to add/verify
+### 2. Backend environment variables
 
-Already need for basic scaffold: `spring-boot-starter-web` (or
-`spring-boot-starter-webmvc` on Spring Boot 4), `spring-boot-starter-data-jpa`,
-`spring-boot-starter-security`, `spring-boot-starter-validation`,
-`postgresql` (runtime).
+Nothing is hardcoded in `application.properties`. Set these before running:
 
-Add for JWT:
+| Variable | Description | Default |
+|---|---|---|
+| `DB_URL` | JDBC URL | — required |
+| `DB_USERNAME` | DB user | — required |
+| `DB_PASSWORD` | DB password | — required |
+| `JWT_SECRET` | Base64 secret, min 32 bytes | — required |
+| `JWT_EXPIRATION_MS` | Token lifetime in ms | `3600000` (1 h) |
+| `RESEND_API_KEY` | Resend.com API key for email | prints links to console if empty |
+| `RESEND_FROM` | From address for emails | `Nibbling <onboarding@resend.dev>` |
+| `FRONTEND_URL` | Next.js app URL (for email links) | `http://localhost:3000` |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated allowed origins | `http://localhost:3000` |
+| `GITHUB_CLIENT_ID` | GitHub OAuth app client ID | `not-set` (OAuth disabled) |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth app secret | `not-set` |
+| `DISCORD_CLIENT_ID` | Discord OAuth app client ID | `not-set` |
+| `DISCORD_CLIENT_SECRET` | Discord OAuth app secret | `not-set` |
 
-```xml
-<properties>
-    <jjwt.version>0.12.6</jjwt.version>
-</properties>
-
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-api</artifactId>
-    <version>${jjwt.version}</version>
-</dependency>
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-impl</artifactId>
-    <version>${jjwt.version}</version>
-    <scope>runtime</scope>
-</dependency>
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-jackson</artifactId>
-    <version>${jjwt.version}</version>
-    <scope>runtime</scope>
-</dependency>
-```
-
-## 4. application.properties
-
-```properties
-spring.application.name=server
-
-spring.datasource.url=${DB_URL}
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
-
-# Hibernate creates/updates tables from the entity classes automatically.
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.open-in-view=false
-
-jwt.secret=${JWT_SECRET}
-jwt.expiration-ms=${JWT_EXPIRATION_MS:3600000}
-
-# Don't leak stack traces or internal exception messages into API responses.
-spring.web.error.include-message=never
-spring.web.error.include-stacktrace=never
-spring.web.error.include-binding-errors=never
-```
-
-## 5. Environment variables (`.vscode/launch.json`)
+**VS Code** — set these in `server/.vscode/launch.json` under the `"env"` key. This file is gitignored so secrets stay local:
 
 ```json
 {
@@ -176,7 +85,7 @@ spring.web.error.include-binding-errors=never
         "DB_URL": "jdbc:postgresql://localhost:5432/nibbling",
         "DB_USERNAME": "nibbling",
         "DB_PASSWORD": "devpassword",
-        "JWT_SECRET": "<generate your own, see below>",
+        "JWT_SECRET": "<generate — see below>",
         "JWT_EXPIRATION_MS": "3600000"
       }
     }
@@ -184,67 +93,148 @@ spring.web.error.include-binding-errors=never
 }
 ```
 
-Generate a `JWT_SECRET` (at least 32 random bytes, base64-encoded) — in
-PowerShell:
+Generate a `JWT_SECRET` (the app refuses to start with fewer than 256 bits):
 
 ```powershell
 [Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
 ```
 
-The app refuses to start if the secret is shorter than 256 bits — that's
-intentional. `.vscode/launch.json` has real secrets in it, so don't commit it
-with your actual value; either gitignore it or keep placeholder values in the
-committed version.
+**IntelliJ** — Run → Edit Configurations → Environment variables.
 
-## 6. Run it
+### 3. Run the backend
 
-From the Run and Debug panel, pick the `ServerApplication` config and hit ▶.
-On first run, Hibernate will create the `users` table automatically — you
-should NOT see any errors about a missing table.
+```bash
+cd server
+./mvnw spring-boot:run    # or mvnw.cmd on Windows
+```
 
-## 7. Why some things are the way they are
+Runs at `http://localhost:8080`. On first run Hibernate creates all tables automatically.
 
-- **UUID primary key** on `users`, generated app-side
-  (`GenerationType.UUID`) — a normal Hibernate 6+ feature, no Postgres
-  extension needed.
-- **`password` is nullable.** GitHub OAuth accounts won't have one.
-- **Login by email, not username** — `CustomUserDetailsService` treats
-  email as Spring Security's "username" concept.
-- **JWT subject is the user's UUID, not the username** — stays valid even
-  if a username changes, and the auth filter re-fetches the user from the
-  DB by that id on every request, so a banned/deleted account is locked out
-  immediately instead of only after the token expires.
-- **Login always returns the same "Invalid email or password"** whether the
-  email doesn't exist or the password is wrong — standard practice against
-  user-enumeration.
-- **Register returns 201**, not 200 — it created a resource.
-- **`UserSummary`** in responses only has `id`, `username`, `emailVerified`
-  — no email, no password hash, nothing that could leak by accident.
+### 4. Seed questions
 
-## 8. Endpoints
+After the tables exist, run the seed file once to populate the question bank:
+
+```bash
+psql "<your-connection-string>" -f server/src/main/resources/db/migration/R__seed_questions.sql
+```
+
+Re-run it any time the file changes — every statement is an upsert, so it's safe to repeat.
+
+If your tables are missing unique constraints (created by an older Hibernate run before the constraints were added), run these first:
+
+```sql
+ALTER TABLE questions        ADD CONSTRAINT uq_questions_slug       UNIQUE (slug);
+ALTER TABLE question_options ADD CONSTRAINT uq_question_options_key UNIQUE (question_id, option_key);
+ALTER TABLE attempts         ADD CONSTRAINT uq_attempt_user_day     UNIQUE (user_id, puzzle_date);
+```
+
+### 5. Frontend environment variables
+
+Create `client/.env.local`:
 
 ```
-POST /api/auth/register  { username, email, password }  -> 201 AuthResponse
-POST /api/auth/login     { email, password }             -> 200 AuthResponse
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+### 6. Run the frontend
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Runs at `http://localhost:3000`.
+
+---
+
+## OAuth setup (optional for local dev)
+
+GitHub and Discord sign-in work when both sets of credentials are set. Without them the server still starts — OAuth buttons just won't complete.
+
+**GitHub** — create an OAuth app at github.com/settings/developers. Callback URL: `http://localhost:8080/login/oauth2/code/github`
+
+**Discord** — create an application at discord.com/developers. Redirect URL: `http://localhost:8080/login/oauth2/code/discord`
+
+---
+
+## API overview
+
+All endpoints under `/api/challenges/*` and `/api/auth/me` require a valid JWT in the `Authorization: Bearer <token>` header.
+
+### Auth
+
+```
+POST /api/auth/register            { username, email, password }  → 201 AuthResponse
+POST /api/auth/login               { email, password }            → 200 AuthResponse
+POST /api/auth/forgot-password     { email }                      → 200
+POST /api/auth/reset-password      { token, newPassword }         → 200
+POST /api/auth/verify-email        { token }                      → 200
+POST /api/auth/resend-verification { email }                      → 200
+GET  /api/auth/me                                                 → 200 UserSummary
 ```
 
 `AuthResponse`: `{ accessToken, tokenType, expiresInMs, user: { id, username, emailVerified } }`
 
-Authenticated requests: `Authorization: Bearer <accessToken>`.
+### Daily quiz
 
-## 9. Not included yet — flagging, not solving
+```
+GET  /api/challenges/today           → TodayResponse (NOT_STARTED / IN_PROGRESS / SUBMITTED)
+POST /api/challenges/today/start     → TodayResponse
+PUT  /api/challenges/today/draft     { answers }   → SaveDraftResponse
+POST /api/challenges/today/submit    { answers? }  → TodayResponse
+POST /api/challenges/today/share                   → ShareResultView
+```
 
-- **Refresh tokens** — a token just expires and the user re-logs in. Fine
-  for now.
-- **Rate limiting on `/login`** — nothing stops brute-forcing a password
-  yet. Add before this is public-facing.
-- **CORS origin** is hardcoded to `http://localhost:3000` in
-  `SecurityConfig` — update once there's a deployed frontend URL.
-- **Schema migrations** — currently Hibernate auto-manages the schema
-  (`ddl-auto=update`) instead of Flyway/versioned SQL migrations. Fine
-  while the team is small and moving fast; worth revisiting if
-  auto-updates start causing confusing schema drift once more people are
-  adding columns independently.
+### Stats & calendar
+
+```
+GET  /api/challenges/stats              → StatsResponse (XP, level, streaks, this week)
+GET  /api/challenges/calendar?month=    → CalendarResponse (per-day results for a month)
+```
+
+### Share (public — no auth required)
+
+```
+GET  /api/share/{token}  → ShareResultView
+```
+
+---
+
+## Game mechanics
+
+**Scoring** — 5 questions per day (2 easy, 2 medium, 1 hard). Each correct answer earns 5 XP, so a perfect quiz is 25 XP. Tier is determined by weighted score:
+
+| Score | Tier |
+|---|---|
+| ≥ 90% | 🍱 Feast |
+| ≥ 60% | 🍙 Meal |
+| < 60% (but answered) | 🍡 Snack |
+| No answers | Miss (0 XP) |
+
+**Streak bonus** — +25 XP every 7-day streak milestone (7, 14, 21…).
+
+**Levels**
+
+| Level | Name | XP needed |
+|---|---|---|
+| 1 | Hatchling | 0 |
+| 2 | Learner | 100 |
+| 3 | Coder | 300 |
+| 4 | Developer | 600 |
+| 5 | Code Master | 1000 |
+
+**Puzzle day** — resets at midnight Pacific time (America/Los_Angeles), Wordle-style. An attempt not submitted by midnight is auto-submitted with whatever answers were saved.
+
+---
+
+## Schema notes
+
+The app uses `ddl-auto=update` (Hibernate manages the schema). Flyway migrations in `server/src/main/resources/db/migration/` exist as documentation and for future use but are currently disabled.
+
+Tables created on first run: `users`, `auth_tokens`, `oauth_accounts`, `questions`, `question_options`, `daily_challenges`, `daily_challenge_questions`, `attempts`, `attempt_answers`.
+
+---
 
 ## 💚 Contributors
 
@@ -272,4 +262,5 @@ Authenticated requests: `Authorization: Bearer <accessToken>`.
       <br />
       <sub></sub>
     </td>
+  </tr>
 </table>
