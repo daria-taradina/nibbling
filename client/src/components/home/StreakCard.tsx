@@ -1,7 +1,10 @@
+"use client";
+
 import { DayIcon, dayMark } from "@/components/challenge/tiers";
-import { Card, CardError, CardSkeleton } from "@/components/ui/Card";
+import { CardError, CardSkeleton } from "@/components/ui/Card";
 import { StatsResponse } from "@/lib/api";
 import { weekDates } from "@/lib/dates";
+import styles from "./StreakCard.module.css";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -19,40 +22,45 @@ export function StreakCard({
   const dates = stats ? weekDates(stats.today) : [];
   const byDate = new Map(stats?.week.map((d) => [d.date, d]));
 
-  const badge = stats && (
-    <span className="rounded-full bg-cream-surface px-3 py-1 text-sm dark:bg-ink-raised">
-      <span aria-hidden="true">🔥</span> {stats.currentStreak} day streak
-    </span>
-  );
-
   return (
-    <Card title="Today's Streak" right={badge} className={className}>
+    <section
+      className={`rounded-xl2 border border-cream-border bg-white p-5 text-ink-bg
+                  dark:border-ink-border dark:bg-ink-surface dark:text-cream-bg ${className}`}
+    >
+      <header className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="font-display text-lg font-semibold">Today&apos;s Streak</h2>
+        {stats && (
+          <span className="rounded-full bg-cream-surface px-3 py-1 text-sm dark:bg-ink-raised">
+            <span aria-hidden="true">🔥</span> {stats.currentStreak} day streak
+          </span>
+        )}
+      </header>
+
       {error && !stats && <CardError message={error} onRetry={onRetry} />}
       {!stats && !error && <CardSkeleton lines={3} />}
+
       {stats && (
         <div className="space-y-4">
-          <ul className="grid grid-cols-7 gap-1.5 sm:gap-2">
+          {/* Bento tray */}
+          <ul className={`grid grid-cols-7 ${styles.tray}`}>
             {dates.map((date, i) => {
               const mark = dayMark(date, byDate.get(date), stats.today, stats.firstPlayedOn);
               const isToday = date === stats.today;
               return (
                 <li
                   key={date}
-                  className={`flex flex-col items-center gap-1 rounded-xl border px-1 py-2 ${
-                    isToday
-                      ? "border-nibbling-500 bg-nibbling-50 dark:bg-nibbling-900/40"
-                      : "border-cream-border dark:border-ink-border"
-                  }`}
+                  className={`${styles.cell} ${isToday ? styles.cellToday : ""}`}
                   aria-current={isToday ? "date" : undefined}
                 >
                   <span className="flex h-8 items-center justify-center text-2xl">
                     <DayIcon mark={mark} />
                   </span>
-                  <span className="text-xs opacity-70">{WEEKDAYS[i]}</span>
+                  <span className={styles.dayLabel}>{WEEKDAYS[i]}</span>
                 </li>
               );
             })}
           </ul>
+
           <p className="text-sm opacity-70">
             {stats.currentStreak === 0
               ? "Finish today's quiz to start a streak."
@@ -60,6 +68,6 @@ export function StreakCard({
           </p>
         </div>
       )}
-    </Card>
+    </section>
   );
 }
