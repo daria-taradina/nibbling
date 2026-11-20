@@ -24,23 +24,23 @@ export function StreakCard({
 
   return (
     <section
-      className={`rounded-xl2 border border-cream-border bg-white p-5 text-ink-bg
+      className={`rounded-xl2 border border-cream-border bg-white p-4 text-ink-bg
                   dark:border-ink-border dark:bg-ink-surface dark:text-cream-bg ${className}`}
     >
-      <header className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="font-display text-lg font-semibold">Today&apos;s Streak</h2>
+      <header className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="font-display text-base font-semibold">Today&apos;s Streak</h2>
         {stats && (
-          <span className="rounded-full bg-cream-surface px-3 py-1 text-sm dark:bg-ink-raised">
+          <span className="rounded-full bg-cream-surface px-2.5 py-0.5 text-xs dark:bg-ink-raised">
             <span aria-hidden="true">🔥</span> {stats.currentStreak} day streak
           </span>
         )}
       </header>
 
       {error && !stats && <CardError message={error} onRetry={onRetry} />}
-      {!stats && !error && <CardSkeleton lines={3} />}
+      {!stats && !error && <CardSkeleton lines={2} />}
 
       {stats && (
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {/* Bento tray */}
           <ul className={`grid grid-cols-7 ${styles.tray}`}>
             {dates.map((date, i) => {
@@ -52,7 +52,7 @@ export function StreakCard({
                   className={`${styles.cell} ${isToday ? styles.cellToday : ""}`}
                   aria-current={isToday ? "date" : undefined}
                 >
-                  <span className="flex h-8 items-center justify-center text-2xl">
+                  <span className="flex h-6 items-center justify-center text-lg">
                     <DayIcon mark={mark} />
                   </span>
                   <span className={styles.dayLabel}>{WEEKDAYS[i]}</span>
@@ -61,7 +61,7 @@ export function StreakCard({
             })}
           </ul>
 
-          <p className="text-sm opacity-70">
+          <p className="text-xs opacity-60">
             {stats.currentStreak === 0
               ? "Finish today's quiz to start a streak."
               : `Longest streak: ${stats.longestStreak} ${stats.longestStreak === 1 ? "day" : "days"}`}

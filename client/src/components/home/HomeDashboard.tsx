@@ -3,24 +3,38 @@
 import { DailyChallengeCard } from "@/components/challenge/DailyChallengeCard";
 import { useStats } from "@/hooks/useStats";
 import { CalendarCard } from "./CalendarCard";
+import { CreatureCard } from "./CreatureCard";
 import { StreakCard } from "./StreakCard";
-import { XpCard } from "./XpCard";
 
-// Home page grid. DOM order = mobile order (XP, Quiz, Streak, Calendar).
-// On large screens the calendar pins to the top-right spanning two rows, and
-// XP + Quiz stack on the left while Streak sits top-centre.
+// Desktop layout:
+//   ┌───────────────────────────────────┬──────────────┐
+//   │  Creature + Level (full width)    │              │
+//   ├──────────────────┬────────────────┤  Calendar    │
+//   │  Today's Quiz    │  Streak        │  (row-span)  │
+//   └──────────────────┴────────────────┴──────────────┘
+//
+// Mobile order: Creature → Quiz → Streak → Calendar
 export function HomeDashboard() {
   const { data: stats, error, reload } = useStats();
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-      {/* row 1: XP (left) | Streak (centre) | Calendar (right, spans 2 rows) */}
-      <XpCard stats={stats} error={error} onRetry={reload} className="min-h-64 lg:col-span-4 lg:row-start-1" />
-      <StreakCard stats={stats} error={error} onRetry={reload} className="lg:col-span-5 lg:row-start-1 order-3 lg:order-none" />
-      <CalendarCard className="min-h-72 lg:col-span-3 lg:col-start-10 lg:row-span-2 lg:row-start-1 order-4 lg:order-none" />
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
+      {/* Row 1: Creature spans full left column */}
+      <CreatureCard
+        stats={stats}
+        error={error}
+        onRetry={reload}
+        className="order-1 lg:col-start-1 lg:row-start-1"
+      />
 
-      {/* row 2: Quiz card spanning XP + Streak columns */}
-      <DailyChallengeCard className="min-h-72 lg:col-span-9 lg:row-start-2 order-2 lg:order-none" />
+      {/* Row 2: Quiz + Streak side by side, still in left column */}
+      <div className="order-2 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-start-1 lg:row-start-2">
+        <DailyChallengeCard />
+        <StreakCard stats={stats} error={error} onRetry={reload} />
+      </div>
+
+      {/* Calendar — spans both rows, right column, natural width */}
+      <CalendarCard className="order-3 lg:col-start-2 lg:row-span-2 lg:row-start-1" />
     </div>
   );
 }

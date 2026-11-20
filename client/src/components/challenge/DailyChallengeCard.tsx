@@ -47,25 +47,25 @@ export function DailyChallengeCard({ className = "" }: { className?: string }) {
   );
 
   return (
-    <Card title="Today's Quiz" icon={<span aria-hidden="true">🌿</span>} right={countdown} className={className}>
+    <Card title="Today's Quiz" icon={<span aria-hidden="true">🌿</span>} right={countdown} className={`flex flex-col ${className}`}>
       {loading && <CardSkeleton lines={4} />}
       {error && !data && <CardError message={error} onRetry={reload} />}
 
       {data?.state === "NOT_STARTED" && (
-        <div className="space-y-4">
+        <div className="flex flex-1 flex-col gap-4">
           <p>
             {data.questionCount} questions to keep your streak going. Your answers save as you go, so you can pause and
             come back any time today.
           </p>
           {startError && <p className="text-sm text-red-600 dark:text-red-400">{startError}</p>}
-          <button type="button" className={primaryButton} onClick={start} disabled={starting}>
+          <button type="button" className={`${primaryButton} mt-auto`} onClick={start} disabled={starting}>
             {starting ? "Starting…" : "Start quiz"}
           </button>
         </div>
       )}
 
       {data?.state === "IN_PROGRESS" && (
-        <div className="space-y-4">
+        <div className="flex flex-1 flex-col gap-4">
           <p>
             You&apos;re partway through.{" "}
             <span className="font-medium">
@@ -73,14 +73,14 @@ export function DailyChallengeCard({ className = "" }: { className?: string }) {
             </span>{" "}
             answered so far.
           </p>
-          <Link href="/quiz" className={primaryButton}>
+          <Link href="/quiz" className={`${primaryButton} mt-auto`}>
             Continue quiz
           </Link>
         </div>
       )}
 
       {data?.state === "SUBMITTED" && data.result && (
-        <div className="space-y-4">
+        <div className="flex flex-1 flex-col gap-4">
           {data.result.tier ? (
             <>
               <p className="flex flex-wrap items-center gap-3">
@@ -96,7 +96,7 @@ export function DailyChallengeCard({ className = "" }: { className?: string }) {
           ) : (
             <p>You missed today&apos;s quiz. A new one arrives when the timer hits zero.</p>
           )}
-          <Link href="/quiz" className={secondaryButton}>
+          <Link href="/quiz" className={`${secondaryButton} mt-auto`}>
             Review answers
           </Link>
         </div>
