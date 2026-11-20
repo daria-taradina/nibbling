@@ -2,6 +2,8 @@
 
 A daily bite-sized coding quiz app. Answer 5 questions, earn XP, keep a streak, share your result. COMP 490/L Senior Design Project.
 
+<img width="3290" height="1696" alt="image" src="https://github.com/user-attachments/assets/35baab95-9336-4b69-8236-d6387e703599" />
+
 ## Tech stack
 
 | Layer | Choice |
