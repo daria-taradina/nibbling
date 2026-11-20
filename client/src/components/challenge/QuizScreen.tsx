@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@/components/auth/UserProvider";
+import { Creature } from "@/components/creature/Creature";
 import { Button } from "@/components/ui/Button";
 import { useToday } from "@/hooks/useToday";
 import { AnswersMap, ApiError, saveDraft, startToday, submitToday, TodayChallenge } from "@/lib/api";
@@ -259,39 +260,40 @@ function QuizResultView({ challenge, onExpire }: { challenge: TodayChallenge; on
 
   return (
     <>
-      <section className={panel}>
-        <p className="text-sm opacity-70">{formatLongDate(challenge.puzzleDate)}</p>
-        {tier ? (
-          <>
-            <h1 className="mt-2 flex items-center gap-3 text-2xl font-semibold">
-              <span className={`rounded-full border px-4 py-1 ${tier.chip}`}>
-                {tier.emoji} {tier.label}
-              </span>
-            </h1>
-            <p className="mt-3">
-              {result.correctCount} of {result.total} correct · <span className="font-medium">+{result.xp} XP</span>
-            </p>
-          </>
-        ) : (
-          <>
-            <h1 className="mt-2 text-2xl font-semibold">Missed today</h1>
-            <p className="mt-3">No answers were saved before the day ended, so there&apos;s no result to count.</p>
-          </>
-        )}
-        {result.submitReason === "DEADLINE" && tier && (
-          <p className="mt-2 text-sm opacity-70">
-            The day ended, so we submitted the answers you had saved.
+      <section className={`${panel} flex items-center justify-between gap-4`}>
+        <div>
+          <p className="text-sm opacity-70">{formatLongDate(challenge.puzzleDate)}</p>
+          {tier ? (
+            <>
+              <h1 className="mt-2 flex items-center gap-3 text-2xl font-semibold">
+                <span className={`rounded-full border px-4 py-1 ${tier.chip}`}>
+                  {tier.emoji} {tier.label}
+                </span>
+              </h1>
+              <p className="mt-3">
+                {result.correctCount} of {result.total} correct · <span className="font-medium">+{result.xp} XP</span>
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="mt-2 text-2xl font-semibold">Missed today</h1>
+              <p className="mt-3">No answers were saved before the day ended, so there&apos;s no result to count.</p>
+            </>
+          )}
+          {result.submitReason === "DEADLINE" && tier && (
+            <p className="mt-2 text-sm opacity-70">The day ended, so we submitted the answers you had saved.</p>
+          )}
+          <p className="mt-4 text-sm">
+            Next quiz in <Countdown deadlineAt={challenge.deadlineAt} onExpire={onExpire} />
           </p>
-        )}
-        <p className="mt-4 text-sm">
-          Next quiz in <Countdown deadlineAt={challenge.deadlineAt} onExpire={onExpire} />
-        </p>
-        <Link
-          href="/"
-          className="mt-4 inline-block rounded-xl border border-cream-border px-4 py-2 text-sm font-medium hover:bg-cream-surface dark:border-ink-border dark:hover:bg-ink-raised"
-        >
-          Back to home
-        </Link>
+          <Link
+            href="/"
+            className="mt-4 inline-block rounded-xl border border-cream-border px-4 py-2 text-sm font-medium hover:bg-cream-surface dark:border-ink-border dark:hover:bg-ink-raised"
+          >
+            Back to home
+          </Link>
+        </div>
+        <Creature mood={tier ? "happy" : "sad"} className="w-24 shrink-0 sm:w-32" />
       </section>
 
       <h2 className="px-1 text-lg font-semibold">Review</h2>
