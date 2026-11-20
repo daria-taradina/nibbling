@@ -148,39 +148,121 @@ npm run dev
 
 Runs at `http://localhost:3000`.
 
-### Backend (`server`)
+---
 
-The backend reads its database credentials from environment variables — nothing is hardcoded in `application.properties`. Set the following before running:
+## OAuth setup (optional for local dev)
+
+GitHub and Discord sign-in work when both sets of credentials are set. Without them the server still starts — OAuth buttons just won't complete.
+
+**GitHub** — create an OAuth app at github.com/settings/developers. Callback URL: `http://localhost:8080/login/oauth2/code/github`
+
+**Discord** — create an application at discord.com/developers. Redirect URL: `http://localhost:8080/login/oauth2/code/discord`
+
+---
+
+## API overview
+
+All endpoints under `/api/challenges/*` and `/api/auth/me` require a valid JWT in the `Authorization: Bearer <token>` header.
+
+### Auth
 
 ```
-DB_URL=jdbc:postgresql://<host>:<port>/<database>
-DB_USERNAME=<your-db-username>
-DB_PASSWORD=<your-db-password>
+POST /api/auth/register            { username, email, password }  → 201 AuthResponse
+POST /api/auth/login               { email, password }            → 200 AuthResponse
+POST /api/auth/forgot-password     { email }                      → 200
+POST /api/auth/reset-password      { token, newPassword }         → 200
+POST /api/auth/verify-email        { token }                      → 200
+POST /api/auth/resend-verification { email }                      → 200
+GET  /api/auth/me                                                 → 200 UserSummary
 ```
 
-**In VS Code:** set these in `server/.vscode/launch.json` under the `"env"` key (this file is gitignored, so your real values never get committed — see `server/.vscode/launch.json` for the template shape).
+`AuthResponse`: `{ accessToken, tokenType, expiresInMs, user: { id, username, emailVerified } }`
 
-**In IntelliJ:** Run → Edit Configurations → Environment variables field.
+### Daily quiz
 
-Then run:
-
-```bash
-cd server
-./mvnw spring-boot:run
+```
+GET  /api/challenges/today           → TodayResponse (NOT_STARTED / IN_PROGRESS / SUBMITTED)
+POST /api/challenges/today/start     → TodayResponse
+PUT  /api/challenges/today/draft     { answers }   → SaveDraftResponse
+POST /api/challenges/today/submit    { answers? }  → TodayResponse
+POST /api/challenges/today/share                   → ShareResultView
 ```
 
-Runs at `http://localhost:8080`.
+### Stats & calendar
 
-## Environment Variables
+```
+GET  /api/challenges/stats              → StatsResponse (XP, level, streaks, this week)
+GET  /api/challenges/calendar?month=    → CalendarResponse (per-day results for a month)
+```
 
-No `.env` files are committed anywhere in this repo. Each person sets their own local values through their IDE's run configuration (see above). Production values (Render, Vercel) are set directly in each platform's dashboard.
+### Share (public — no auth required)
 
-## Status
+```
+GET  /api/share/{token}  → ShareResultView
+```
 
-🚧 Early scaffold — client and server run independently, not yet wired together. No database connected yet.
+---
 
-## Team
+## Game mechanics
 
-- Daria — [role/focus TBD]
-- [Teammate 2]
-- [Teammate 3]
+**Scoring** — 5 questions per day (2 easy, 2 medium, 1 hard). Each correct answer earns 5 XP, so a perfect quiz is 25 XP. Tier is determined by weighted score:
+
+| Score | Tier |
+|---|---|
+| ≥ 90% | 🍱 Feast |
+| ≥ 60% | 🍙 Meal |
+| < 60% (but answered) | 🍡 Snack |
+| No answers | Miss (0 XP) |
+
+**Streak bonus** — +25 XP every 7-day streak milestone (7, 14, 21…).
+
+**Levels**
+
+| Level | Name | XP needed |
+|---|---|---|
+| 1 | Hatchling | 0 |
+| 2 | Learner | 100 |
+| 3 | Coder | 300 |
+| 4 | Developer | 600 |
+| 5 | Code Master | 1000 |
+
+**Puzzle day** — resets at midnight Pacific time (America/Los_Angeles), Wordle-style. An attempt not submitted by midnight is auto-submitted with whatever answers were saved.
+
+---
+
+## Schema notes
+
+The app uses `ddl-auto=update` (Hibernate manages the schema). Flyway migrations in `server/src/main/resources/db/migration/` exist as documentation and for future use but are currently disabled.
+
+Tables created on first run: `users`, `auth_tokens`, `oauth_accounts`, `questions`, `question_options`, `daily_challenges`, `daily_challenge_questions`, `attempts`, `attempt_answers`.
+
+---
+
+## 💚 Contributors
+
+<table>
+  <tr>
+    <td align="center" width="340">
+      <a href="https://github.com/daria-taradina">
+        <img src="https://github.com/daria-taradina.png?size=150" width="90" alt="Daria Taradina" />
+      </a>
+      <br /><br />
+      <a href="https://github.com/dariatarad">
+        <img src="https://img.shields.io/badge/dariataradina-e8b4d0?style=for-the-badge&logo=github&logoColor=333" />
+      </a>
+      <br />
+      <sub></sub>
+    </td>
+    <td align="center" width="340">
+      <a href="https://github.com/realfarshadazam-lab">
+        <img src="https://github.com/realfarshadazam-lab.png?size=150" width="90" alt="Farshad Azam" />
+      </a>
+      <br /><br />
+      <a href="https://github.com/realfarshadazam-lab">
+        <img src="https://img.shields.io/badge/realfarshadazamlab-7DD17D?style=for-the-badge&logo=github&logoColor=333" />
+      </a>
+      <br />
+      <sub></sub>
+    </td>
+  </tr>
+</table>
